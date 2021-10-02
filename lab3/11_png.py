@@ -71,7 +71,9 @@ def man(screen, r, x):
 
     
 def fish(screen, r, x, angle):
-
+    """ screen, r - радиус тела рыбы
+   х = (х0 - координата центра тела по х, у0 - координата центра тела по у)
+   angle - угол поворота рыбы против часовой стрелки"""
     # body of the fish
     ellipseRotate(screen, (0,0,0), (x[0],x[1], r, r/2), angle, 2) 
     ellipseRotate(screen, (153, 204, 255), (x[0],x[1], r-2, r/2-2), angle, 0)
