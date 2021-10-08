@@ -28,17 +28,25 @@ counter_font_size = 32
 counter_top_left_corner_x, counter_top_left_corner_y = counter_top_left_corner = (10,10)
 
 
-def new_ball():
-    '''draws new ball with velocity
+Number_of_balls = 2
+
+
+def new_ball_pars():
+    '''gives parameters of a new ball
+return: x - 1 cor of a ball
+y - 2 cor of a ball
+r - radius
+Vx - velocity in x direction
+Vy - velocity in y direction
+color - color of a ball
 '''
-    global x, y, r, Vx, Vy, color
     x = randint(260, 1140)
     y = randint(100, 640)
     r = randint(10, 100)
     Vx = randint(-10, 10)
     Vy = randint(-10, 10)
     color = COLORS[randint(0, 5)]
-    circle(screen, color, (x, y), r)
+    return x, y, r, Vx, Vy, color 
 
 def counter(screen, points, misses, x_cor, y_cor, font_size):
     """
@@ -80,7 +88,7 @@ def misses_counter(screen, misses, x_cor, y_cor, font_size):
     textRect.topleft = (x_cor, y_cor)
     screen.blit(text, textRect)
     
-def move_ball(screen, x_cor, y_cor, vx, vy, Color):
+def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
     """ moves a ball from position x_cor, y_cor to position x_cor+vx, y_cor+vy
        :par screen: where you want to draw it
        :par x_cor: initial x coordinate of a ball
@@ -90,8 +98,18 @@ def move_ball(screen, x_cor, y_cor, vx, vy, Color):
        :par color: color of a ball
 
     """
-    screen.fill(BLACK)
+    if (x_cor < rect[0]) or x_cor > rect[2]:
+        vx = -vx
+    if y_cor < rect[1] or y_cor > rect[3]:
+        vy = -vy
+    
+    
+    circle(screen, BLACK,(x_cor, y_cor), r) 
     circle(screen, Color, (x_cor+vx, y_cor+vy), r)
+
+    x_cor += vx
+    y_cor += vy
+    return x_cor, y_cor, vx, vy
 def change_ball_pars(x_cor, y_cor, vx, vy, rect):
     """
     shifts coorditates
@@ -119,7 +137,24 @@ def change_ball_pars(x_cor, y_cor, vx, vy, rect):
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
-new_ball()
+
+#lists for pars for balls
+x = [1 for i in range(Number_of_balls)]
+y = [1 for i in range(Number_of_balls)]
+r = [1 for i in range(Number_of_balls)]
+Vx = [1 for i in range(Number_of_balls)]
+Vy = [1 for i in range(Number_of_balls)]
+color = [1 for i in range(Number_of_balls)]
+
+#initial balls
+for i in range(Number_of_balls):
+    x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
+    circle(screen, color[i], (x[i], y[i]), r[i])
+    
+
+
+
+
 Points = 0
 Misses = 0
 pygame.display.update()
@@ -133,18 +168,21 @@ while not finished:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             Misses += 1
-            if (event.pos[0] - x)**2 + (event.pos[1] - y)**2 <= r**2: #checking if we hit the circle
+            for i in range(Number_of_balls):
+                if (event.pos[0] - x[i])**2 + (event.pos[1] - y[i])**2 <= r[i]**2: #checking if we hitted the ball
 
-                Points += 1
-                Misses -= 1
-                screen.fill(BLACK)
-                new_ball()
+                    Points += 1
+                    Misses -= 1
+                    screen.fill(BLACK)
+                    #changing the ball we've hitted
+                    x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
 
 
+    # shifting each ball
+    for i in range(Number_of_balls):
+        x[i] ,y[i], Vx[i], Vy[i] =  move_ball(screen, color[i], x[i], y[i], r[i], Vx[i], Vy[i], RECT)
 
-    
-    move_ball(screen, x, y, Vx, Vy, color)
-    x ,y, Vx, Vy = change_ball_pars(x, y, Vx, Vy, RECT)
+        
     #Refreshing screen with new points
     counter(screen, Points, Misses, counter_top_left_corner_x, counter_top_left_corner_y, counter_font_size)
     
