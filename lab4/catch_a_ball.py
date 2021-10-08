@@ -5,9 +5,9 @@ import numpy as np
 pygame.init()
 
 FPS = 2
-# assigning values to X and Y variable
+
 X = 1200
-Y = 800
+Y = 700
 screen = pygame.display.set_mode((X, Y))
 
 # colors
@@ -30,12 +30,24 @@ def new_ball():
     '''draws new ball with velocity'''
     global x, y, r, Vx, Vy, color
     x = randint(100, 1100)
-    y = randint(100, 800)
+    y = randint(100, 700)
     r = randint(10, 100)
     Vx = randint(1, 10)
     Vy = randint(1, 10)
     color = COLORS[randint(0, 5)]
     circle(screen, color, (x, y), r)
+
+def counter(screen, points, misses, x_cor, y_cor, font_size):
+    """
+    displays counter of points and misses on the screen
+    :par points: number of points
+    :par misses: number of points
+    :par x_cor: 1 coordinate of top left corner of counter
+    :par y_cor: 2 coordinate of top left corner of counter
+    :par font_size: font size
+    """     
+    points_counter(screen, points, x_cor, y_cor, font_size)
+    misses_counter(screen, misses, x_cor, y_cor+40, font_size)
     
 def points_counter(screen, points, x_cor, y_cor, font_size):
     """
@@ -54,7 +66,7 @@ def points_counter(screen, points, x_cor, y_cor, font_size):
 def misses_counter(screen, misses, x_cor, y_cor, font_size):
     """
     displays counter of points at the right top corner of the screen
-    :par points: number of points
+    :par misses: number of points
     :par x_cor: 1 coordinate of top left corner of counter
     :par y_cor: 2 coordinate of top left corner of counter
     :par font_size: font size
@@ -64,21 +76,7 @@ def misses_counter(screen, misses, x_cor, y_cor, font_size):
     textRect = text.get_rect()
     textRect.topleft = (x_cor, y_cor)
     screen.blit(text, textRect)
-
-def counter(screen, x_cor, y_cor, font_size):
-    """
-    displays counter of points and misses on the screen
-    :par points: number of points
-    :par x_cor: 1 coordinate of top left corner of counter
-    :par y_cor: 2 coordinate of top left corner of counter
-    :par font_size: font size
-    """     
-    points_counter(screen, points, x_cor, y_cor, font_size)
-    misses_counter(screen, misses, x_cor, y_cor+40, font_size)
-    pygame.display.update()
     
-# set the pygame window name
-pygame.display.set_caption('Catch a ball')
 
 
 
@@ -86,35 +84,34 @@ pygame.display.set_caption('Catch a ball')
 
 pygame.display.update()
 clock = pygame.time.Clock()
-
-
-points = 0
-misses = 0
-new_ball()
-pygame.display.update()
 finished = False
+
+Points = 0
+Misses = 0
+pygame.display.update()
+
 while not finished:
     clock.tick(FPS)
-    
+    Misses += 1
     for event in pygame.event.get():
+ 
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            misses+=1
+
             if (event.pos[0] - x)**2 + (event.pos[1] - y)**2 <= r**2: #checking if we hit the circle
-                print('Ladies and gentlemen, we got em!')
-                points += 1
-                misses -= 1
+
+                Points += 1
+                Misses -= 1
                 
-                screen.fill(BLACK)
-                
-                new_ball()
-                pygame.display.update()
-               
-            else:
-                print('Goddamn, he escaped!')
-        #counter of points and misses
-        counter(screen, counter_top_left_corner_x, counter_top_left_corner_y, counter_font_size)
+
+
+
+      
+    counter(screen, Points, Misses, counter_top_left_corner_x, counter_top_left_corner_y, counter_font_size)
+    new_ball()
+    pygame.display.update()
+    screen.fill(BLACK)
 
                 
 pygame.quit()
