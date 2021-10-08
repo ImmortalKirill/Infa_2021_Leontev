@@ -90,13 +90,15 @@ def misses_counter(screen, misses, x_cor, y_cor, font_size):
     
 def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
     """ moves a ball from position x_cor, y_cor to position x_cor+vx, y_cor+vy
+        checks if a ball hitted an edge of play-field and changes its velocity
        :par screen: where you want to draw it
        :par x_cor: initial x coordinate of a ball
        :par y_cor: initial y coordinate of a ball
        :par vx: x - shift
        :par vy: y - shift
        :par color: color of a ball
-
+        returns: x_cor, y_cor, vx, vy
+        new coordinates and velocity
     """
     if (x_cor < rect[0]) or x_cor > rect[2]:
         vx = -vx
@@ -110,26 +112,6 @@ def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
     x_cor += vx
     y_cor += vy
     return x_cor, y_cor, vx, vy
-def change_ball_pars(x_cor, y_cor, vx, vy, rect):
-    """
-    shifts coorditates
-    checks if a ball hitted an edge of play-field and changes its velocity
-    :par x_cor: initial x coordinate of a ball
-    :par y_cor: initial y coordinate of a ball
-    :par vx: x - shift
-    :par vy: y - shift
-    :par rect: = (x1 ,y1, x2, y2) =
-    x, y - top left corner of play-field
-    x2, y2 -down right corner of play-field
-    Returns new x coordinate, y coordinate, vx, vy
-    """
-    if (x_cor < rect[0]) or x_cor > rect[2]:
-        vx = -vx
-    if y_cor < rect[1] or y_cor > rect[3]:
-        vy = -vy
-    x_cor += vx
-    y_cor += vy
-    return x_cor, y_cor, vx, vy
         
 
 
@@ -138,7 +120,7 @@ pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
-#lists for pars for balls
+#lists for parameters of balls
 x = [1 for i in range(Number_of_balls)]
 y = [1 for i in range(Number_of_balls)]
 r = [1 for i in range(Number_of_balls)]
@@ -169,7 +151,7 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             Misses += 1
             for i in range(Number_of_balls):
-                if (event.pos[0] - x[i])**2 + (event.pos[1] - y[i])**2 <= r[i]**2: #checking if we hitted the ball
+                if (event.pos[0] - x[i])**2 + (event.pos[1] - y[i])**2 <= r[i]**2: #checking if we've hitted the ball
 
                     Points += 1
                     Misses -= 1
