@@ -11,9 +11,10 @@ Y = 700
 screen = pygame.display.set_mode((X, Y))
 
 #play-field
-RECT = left_wall, up_wall, right_wall, down_wall = (250, 50, 1150, 650)
+RECT = left_wall, up_wall, right_wall, down_wall = (250, 10, 1190, 690)
 # colors
 WHITE = (255, 255, 255)
+GOLD = (255,215,0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -21,28 +22,31 @@ GREEN = (0, 255, 0)
 MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
-COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+COLORS = [RED, BLUE, WHITE, GREEN, MAGENTA, CYAN]
 
 #counter constants
 counter_font_size = 32
 counter_top_left_corner_x, counter_top_left_corner_y = counter_top_left_corner = (10,10)
 
 
-Number_of_balls = 2
-
+Number_of_balls = 1
+Number_of_small_balls = 4
+Supa_ball_radius = 70
+Small_ball_radius = 15
 
 def new_ball_pars():
     '''gives parameters of a new ball
-return: x - 1 cor of a ball
+return: x, y, r, Vx, Vy, color
+x - 1 cor of a ball
 y - 2 cor of a ball
 r - radius
 Vx - velocity in x direction
 Vy - velocity in y direction
 color - color of a ball
 '''
-    x = randint(260, 1140)
-    y = randint(100, 640)
-    r = randint(10, 100)
+    x = randint(340, 1100)
+    y = randint(140, 600)
+    r = randint(15, 50)
     Vx = randint(-10, 10)
     Vy = randint(-10, 10)
     color = COLORS[randint(0, 5)]
@@ -89,8 +93,8 @@ def misses_counter(screen, misses, x_cor, y_cor, font_size):
     screen.blit(text, textRect)
     
 def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
-    """ moves a ball from position x_cor, y_cor to position x_cor+vx, y_cor+vy
-        checks if a ball hitted an edge of play-field and changes its velocity
+    """ moves ball from position x_cor, y_cor to position x_cor+vx, y_cor+vy
+        checks if ball hitted an edge of the play-field and changes its velocity
        :par screen: where you want to draw it
        :par x_cor: initial x coordinate of a ball
        :par y_cor: initial y coordinate of a ball
@@ -100,9 +104,9 @@ def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
         returns: x_cor, y_cor, vx, vy
         new coordinates and velocity
     """
-    if (x_cor < rect[0]) or x_cor > rect[2]:
+    if (x_cor < rect[0]+r) or x_cor > rect[2]-r:
         vx = -vx
-    if y_cor < rect[1] or y_cor > rect[3]:
+    if y_cor < rect[1]+r or y_cor > rect[3]-r:
         vy = -vy
     
     
@@ -113,8 +117,46 @@ def move_ball(screen, Color, x_cor, y_cor, r, vx, vy, rect):
     y_cor += vy
     return x_cor, y_cor, vx, vy
         
-
-
+def supa_ball(screen):
+    """ draws supa ball on the screen
+    gives parameters of a new supa_ball
+    :par screen: display
+    return: color, x, y, r, Vx, Vy
+    x - 1 cor of a ball
+    y - 2 cor of a ball
+    r - radius
+    Vx - velocity in x direction
+    Vy - velocity in y direction
+    color - color of a ball
+    """
+    x = randint(340, 1100)
+    y = randint(140, 600)
+    r = Supa_ball_radius
+    Vx = randint(-10, 10)
+    Vy = randint(-10, 10)
+    circle(screen, GOLD, (x, y), r)
+    return [GOLD, x, y, r, Vx, Vy]
+def small_ball(screen, x_cor, y_cor, r):
+    """draws small_ball of the screen
+    gives parameters of a new small_ball
+    :par screen: display
+    :par x_cor: 1 coordinate of supa_ball which produced this small ball
+    :par y_cor: 2 coordinate of supa_ball which produced this small ball
+    :par r: radius of supa_ball which produced this small ball
+    return: color, x, y, r, Vx, Vy
+    x - 1 cor of a ball
+    y - 2 cor of a ball
+    r - radius
+    Vx - velocity in x direction
+    Vy - velocity in y direction
+    color - color of a ball
+    """
+    r = Small_ball_radius
+    Vx = randint(-10, 10)
+    Vy = randint(-10, 10)
+    color = COLORS[randint(0, 5)]
+    circle(screen, color, (x_cor, y_cor), r)
+    return [color, x_cor, y_cor, r, Vx, Vy]    
 
 pygame.display.update()
 clock = pygame.time.Clock()
@@ -128,19 +170,21 @@ Vx = [1 for i in range(Number_of_balls)]
 Vy = [1 for i in range(Number_of_balls)]
 color = [1 for i in range(Number_of_balls)]
 
+#super ball list of parameters
+supa_ball_pars = []
+#small ball list of parameters
+small_supa_pars = []
 #initial balls
 for i in range(Number_of_balls):
     x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
     circle(screen, color[i], (x[i], y[i]), r[i])
-    
-
 
 
 
 Points = 0
 Misses = 0
 pygame.display.update()
-
+supa_chance = randint(0,1)
 while not finished:
     clock.tick(FPS)
 
@@ -158,12 +202,49 @@ while not finished:
                     screen.fill(BLACK)
                     #changing the ball we've hitted
                     x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
+                    #chance of getting new supa ball
+                    supa_chance = randint(0,1)
+                    
+                    if supa_chance == 1:
+                        supa_ball_pars.append(supa_ball(screen)) #adding new supa ball in list
 
+            i = 0            
+            while i < len(supa_ball_pars):
+                if (event.pos[0] - supa_ball_pars[i][1])**2 + (event.pos[1] - supa_ball_pars[i][2])**2 <= supa_ball_pars[i][3]**2:      #Cheking if we've hitted supa ball number i
 
+                     #deleting this ball and adding Number_of_small_balls in small_supa_pars
+                    small_supa_pars.append([small_ball(screen, supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3]) for k in range(Number_of_small_balls)] )
+                    circle(screen, BLACK, (supa_ball_pars[i][1], supa_ball_pars[i][2]), supa_ball_pars[i][3])
+                    supa_ball_pars.pop(i)
+                    i -= 1
+                i += 1
+
+       
+            for k in range(len(small_supa_pars)):
+                j = 0
+                while j < len(small_supa_pars[k]):
+                    if (event.pos[0] - small_supa_pars[k][j][1])**2 + (event.pos[1] - small_supa_pars[k][j][2])**2 <= small_supa_pars[k][j][3]**2:#Cheking if we've hitted supa ball number i
+                        circle(screen, BLACK, (small_supa_pars[k][j][1], small_supa_pars[k][j][2]), small_supa_pars[k][j][3])
+                        small_supa_pars[k].pop(j)
+                        j -= 1
+                    j += 1
+                    
     # shifting each ball
     for i in range(Number_of_balls):
         x[i] ,y[i], Vx[i], Vy[i] =  move_ball(screen, color[i], x[i], y[i], r[i], Vx[i], Vy[i], RECT)
+    # shifting supa balls and small balls
+    for i in range(len(supa_ball_pars)):
+        #moving each supa ball
+        supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][4], supa_ball_pars[i][5] =  move_ball(screen, supa_ball_pars[i][0], supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3], supa_ball_pars[i][4], supa_ball_pars[i][5], RECT)
+        
+    for i in range(len(small_supa_pars)):
+        for j in range(len(small_supa_pars[i])):
+            #moving each small ball
+            small_supa_pars[i][j][1], small_supa_pars[i][j][2], small_supa_pars[i][j][4], small_supa_pars[i][j][5] =  move_ball(screen, COLORS[randint(0, 5)], small_supa_pars[i][j][1], small_supa_pars[i][j][2], small_supa_pars[i][j][3], small_supa_pars[i][j][4], small_supa_pars[i][j][5], RECT)
 
+
+    #  highlighting play-field
+    rect(screen, WHITE, (left_wall, up_wall, right_wall-left_wall, down_wall-up_wall), width = 5)
         
     #Refreshing screen with new points
     counter(screen, Points, Misses, counter_top_left_corner_x, counter_top_left_corner_y, counter_font_size)
