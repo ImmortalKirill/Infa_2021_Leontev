@@ -5,7 +5,7 @@ import numpy as np
 pygame.init()
 
 FPS = 30
-
+# screen size
 X = 1200
 Y = 700
 screen = pygame.display.set_mode((X, Y))
@@ -30,9 +30,11 @@ counter_top_left_corner_x, counter_top_left_corner_y = counter_top_left_corner =
 
 
 Number_of_balls = 1
-Number_of_small_balls = 4
+Number_of_small_balls = 2
 Supa_ball_radius = 70
 Small_ball_radius = 15
+
+Small_ball_time = 4000
 
 def new_ball_pars():
     '''gives parameters of a new ball
@@ -73,7 +75,7 @@ def points_counter(screen, points, x_cor, y_cor, font_size):
     :par font_size: font size
     """
     font = pygame.font.Font('freesansbold.ttf', font_size)
-    text = font.render('hits: '+str(points), True, GREEN, BLUE)
+    text = font.render('Points: '+str(points), True, GREEN, BLUE)
     textRect = text.get_rect()
     textRect.topleft = (x_cor, y_cor)
     screen.blit(text, textRect)
@@ -173,7 +175,10 @@ color = [1 for i in range(Number_of_balls)]
 #super ball list of parameters
 supa_ball_pars = []
 #small ball list of parameters
-small_supa_pars = []
+small_balls_pars = []
+
+#events for smallballs
+events = []
 #initial balls
 for i in range(Number_of_balls):
     x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
@@ -192,6 +197,8 @@ while not finished:
  
         if event.type == pygame.QUIT:
             finished = True
+
+            
         elif event.type == pygame.MOUSEBUTTONDOWN:
             Misses += 1
             for i in range(Number_of_balls):
@@ -202,8 +209,8 @@ while not finished:
                     screen.fill(BLACK)
                     #changing the ball we've hitted
                     x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
-                    #chance of getting new supa ball
-                    supa_chance = randint(0,1)
+                    #chance of getting new supa ball (33%)
+                    supa_chance = randint(0,2)
                     
                     if supa_chance == 1:
                         supa_ball_pars.append(supa_ball(screen)) #adding new supa ball in list
@@ -212,35 +219,68 @@ while not finished:
             while i < len(supa_ball_pars):
                 if (event.pos[0] - supa_ball_pars[i][1])**2 + (event.pos[1] - supa_ball_pars[i][2])**2 <= supa_ball_pars[i][3]**2:      #Cheking if we've hitted supa ball number i
 
-                     #deleting this ball and adding Number_of_small_balls in small_supa_pars
-                    small_supa_pars.append([small_ball(screen, supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3]) for k in range(Number_of_small_balls)] )
+                     #adding Number_of_small_balls in small_balls_pars
+                    small_balls_pars.append([small_ball(screen, supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3]) for k in range(Number_of_small_balls)] )
+
+                    #making timer for this small balls
+                    events.append(pygame.USEREVENT+len(events))
+                    pygame.time.set_timer(events[len(events)-1], Small_ball_time, 1)
+
+                    #deleting supa ball
                     circle(screen, BLACK, (supa_ball_pars[i][1], supa_ball_pars[i][2]), supa_ball_pars[i][3])
                     supa_ball_pars.pop(i)
                     i -= 1
                 i += 1
+                
+               #Checking about hitting small balls
+            k = 0
+            while k < len(small_balls_pars):
 
-       
-            for k in range(len(small_supa_pars)):
-                j = 0
-                while j < len(small_supa_pars[k]):
-                    if (event.pos[0] - small_supa_pars[k][j][1])**2 + (event.pos[1] - small_supa_pars[k][j][2])**2 <= small_supa_pars[k][j][3]**2:#Cheking if we've hitted supa ball number i
-                        circle(screen, BLACK, (small_supa_pars[k][j][1], small_supa_pars[k][j][2]), small_supa_pars[k][j][3])
-                        small_supa_pars[k].pop(j)
+                j = 0   
+                while j < len(small_balls_pars[k]):
+                    #Cheking if we've hitted small ball number i, if so, deleting this ball
+                    if (event.pos[0] - small_balls_pars[k][j][1])**2 + (event.pos[1] - small_balls_pars[k][j][2])**2 <= small_balls_pars[k][j][3]**2:
+                        circle(screen, BLACK, (small_balls_pars[k][j][1], small_balls_pars[k][j][2]), small_balls_pars[k][j][3])
+                        small_balls_pars[k].pop(j)
                         j -= 1
                     j += 1
+
+                # adding points if player hitted all small balls from one supa ball
+                if len(small_balls_pars[k]) == 0:
+                    Points += 10
+                    k -= 1
+                    small_balls_pars.pop(k)
+                    events.pop(i)
+                k += 1
+        i = 0
+        #checking timer_events
+        while i < len(events):       
+            if event.type == events[i]:
+                # erasing each ball associated with this event
+                for j in range(len(small_balls_pars[i])):
+                    circle(screen, BLACK, (small_balls_pars[i][j][1], small_balls_pars[i][j][2]), small_balls_pars[i][j][3])
+                # adding points if player hitted all small balls from one supa ball
+                small_balls_pars.pop(i)
+                events.pop(i)
+                i -= 1
+            i += 1
                     
     # shifting each ball
     for i in range(Number_of_balls):
         x[i] ,y[i], Vx[i], Vy[i] =  move_ball(screen, color[i], x[i], y[i], r[i], Vx[i], Vy[i], RECT)
+                       
     # shifting supa balls and small balls
+
+    #moving each supa ball                       
     for i in range(len(supa_ball_pars)):
-        #moving each supa ball
+
         supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][4], supa_ball_pars[i][5] =  move_ball(screen, supa_ball_pars[i][0], supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3], supa_ball_pars[i][4], supa_ball_pars[i][5], RECT)
-        
-    for i in range(len(small_supa_pars)):
-        for j in range(len(small_supa_pars[i])):
-            #moving each small ball
-            small_supa_pars[i][j][1], small_supa_pars[i][j][2], small_supa_pars[i][j][4], small_supa_pars[i][j][5] =  move_ball(screen, COLORS[randint(0, 5)], small_supa_pars[i][j][1], small_supa_pars[i][j][2], small_supa_pars[i][j][3], small_supa_pars[i][j][4], small_supa_pars[i][j][5], RECT)
+
+     #moving each small ball        
+    for i in range(len(small_balls_pars)):
+        for j in range(len(small_balls_pars[i])):
+
+            small_balls_pars[i][j][1], small_balls_pars[i][j][2], small_balls_pars[i][j][4], small_balls_pars[i][j][5] =  move_ball(screen, COLORS[randint(0, 5)], small_balls_pars[i][j][1], small_balls_pars[i][j][2], small_balls_pars[i][j][3], small_balls_pars[i][j][4], small_balls_pars[i][j][5], RECT)
 
 
     #  highlighting play-field
