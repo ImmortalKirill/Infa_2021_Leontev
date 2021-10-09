@@ -10,6 +10,7 @@ X = 1200
 Y = 700
 screen = pygame.display.set_mode((X, Y))
 
+start_font_size = 200
 #play-field
 RECT = left_wall, up_wall, right_wall, down_wall = (250, 10, 1190, 690)
 # colors
@@ -34,7 +35,7 @@ Number_of_small_balls = 2
 Supa_ball_radius = 70
 Small_ball_radius = 15
 
-Small_ball_time = 4000
+Small_ball_time = 2000
 
 def new_ball_pars():
     '''gives parameters of a new ball
@@ -160,6 +161,29 @@ def small_ball(screen, x_cor, y_cor, r):
     circle(screen, color, (x_cor, y_cor), r)
     return [color, x_cor, y_cor, r, Vx, Vy]    
 
+def menu_screen(screen, x, y):
+    """
+    draws menu screen
+    :par screen: display
+    :par x: width of display
+    :par y: length of display
+    :par font_size: font size
+    """
+    button('Start', GREEN, BLUE, x/2, y/2, start_font_size)
+
+def button(name, name_color, background_color, x, y, font_size):
+    """
+    draws button 'name' with center in (x,y) cor
+    returns: width and length of button
+    """
+    global Start_button_width, Start_button_length
+    font = pygame.font.Font('freesansbold.ttf', font_size)
+    text = font.render(name, True, name_color, background_color)
+    textRect = text.get_rect()
+    textRect.center = (x, y)
+    screen.blit(text, textRect)
+    Start_button_width, Start_button_length = font.size(name)
+    
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
@@ -182,14 +206,39 @@ events = []
 #initial balls
 for i in range(Number_of_balls):
     x[i], y[i], r[i], Vx[i], Vy[i], color[i] = new_ball_pars()
-    circle(screen, color[i], (x[i], y[i]), r[i])
+# displaying menu screen
+menu_screen(screen, X, Y)
 
-
+Game_start = False
 
 Points = 0
 Misses = 0
 pygame.display.update()
 supa_chance = randint(0,1)
+
+while not Game_start:
+    clock.tick(FPS)
+
+    
+    x_mouse, y_mouse = pygame.mouse.get_pos()
+    if abs(x_mouse - X/2) < Start_button_width/2 and abs(y_mouse - Y/2) < Start_button_length/2:
+
+        
+        button('Start', BLUE, GREEN, X/2, Y/2, start_font_size)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            finished = True
+            Game_start = True
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if abs(event.pos[0] - X/2) < Start_button_width/2 and abs(event.pos[1] - Y/2) < Start_button_length/2:
+                Game_start = True
+    
+    pygame.display.update()
+    button('Start', GREEN, BLUE, X/2, Y/2, start_font_size)    
+            
+screen.fill(BLACK)
+
+
 while not finished:
     clock.tick(FPS)
 
@@ -201,6 +250,8 @@ while not finished:
             
         elif event.type == pygame.MOUSEBUTTONDOWN:
             Misses += 1
+
+            #cheking simple balls
             for i in range(Number_of_balls):
                 if (event.pos[0] - x[i])**2 + (event.pos[1] - y[i])**2 <= r[i]**2: #checking if we've hitted the ball
 
@@ -215,11 +266,12 @@ while not finished:
                     if supa_chance == 1:
                         supa_ball_pars.append(supa_ball(screen)) #adding new supa ball in list
 
+
             i = 0            
             while i < len(supa_ball_pars):
                 if (event.pos[0] - supa_ball_pars[i][1])**2 + (event.pos[1] - supa_ball_pars[i][2])**2 <= supa_ball_pars[i][3]**2:      #Cheking if we've hitted supa ball number i
 
-                     #adding Number_of_small_balls in small_balls_pars
+                    #adding Number_of_small_balls in small_balls_pars
                     small_balls_pars.append([small_ball(screen, supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3]) for k in range(Number_of_small_balls)] )
 
                     #making timer for this small balls
@@ -232,13 +284,13 @@ while not finished:
                     i -= 1
                 i += 1
                 
-               #Checking about hitting small balls
+                #Checking about hitting small balls
             k = 0
             while k < len(small_balls_pars):
 
                 j = 0   
                 while j < len(small_balls_pars[k]):
-                    #Cheking if we've hitted small ball number i, if so, deleting this ball
+                    #Cheking if we've hitted small ball number j, if so, delete this ball
                     if (event.pos[0] - small_balls_pars[k][j][1])**2 + (event.pos[1] - small_balls_pars[k][j][2])**2 <= small_balls_pars[k][j][3]**2:
                         circle(screen, BLACK, (small_balls_pars[k][j][1], small_balls_pars[k][j][2]), small_balls_pars[k][j][3])
                         small_balls_pars[k].pop(j)
@@ -248,14 +300,18 @@ while not finished:
                 # adding points if player hitted all small balls from one supa ball
                 if len(small_balls_pars[k]) == 0:
                     Points += 10
-                    k -= 1
                     small_balls_pars.pop(k)
-                    events.pop(i)
+                    events.pop(k)
+                    k -= 1
+
                 k += 1
+        
         i = 0
         #checking timer_events
         while i < len(events):       
             if event.type == events[i]:
+                print(events)
+                print(events[i])
                 # erasing each ball associated with this event
                 for j in range(len(small_balls_pars[i])):
                     circle(screen, BLACK, (small_balls_pars[i][j][1], small_balls_pars[i][j][2]), small_balls_pars[i][j][3])
@@ -264,7 +320,12 @@ while not finished:
                 events.pop(i)
                 i -= 1
             i += 1
-                    
+                
+
+                
+                
+        
+               
     # shifting each ball
     for i in range(Number_of_balls):
         x[i] ,y[i], Vx[i], Vy[i] =  move_ball(screen, color[i], x[i], y[i], r[i], Vx[i], Vy[i], RECT)
@@ -276,7 +337,7 @@ while not finished:
 
         supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][4], supa_ball_pars[i][5] =  move_ball(screen, supa_ball_pars[i][0], supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3], supa_ball_pars[i][4], supa_ball_pars[i][5], RECT)
 
-     #moving each small ball        
+    #moving each small ball        
     for i in range(len(small_balls_pars)):
         for j in range(len(small_balls_pars[i])):
 
@@ -288,7 +349,6 @@ while not finished:
         
     #Refreshing screen with new points
     counter(screen, Points, Misses, counter_top_left_corner_x, counter_top_left_corner_y, counter_font_size)
-    
     pygame.display.update()
 
                
