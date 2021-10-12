@@ -1,8 +1,10 @@
 import pygame
 from pygame.draw import *
+import keyboard
 from random import randint
 import numpy as np
 pygame.init()
+
 
 FPS = 30
 # screen size
@@ -13,11 +15,26 @@ screen = pygame.display.set_mode((X, Y))
 #start button
 start_font_size = 200
 
+#enter name screen
+enter_name_size = 100
+ok_x_cor, ok_y_cor = (90/100*X, 60/100*Y)
+ok_size = 50
+
+#for name
+alphabet = []
+with open('words.txt') as g:
+    for element in g.read():
+        alphabet.append('K_'+element)
+        
 #game_over
 game_over_size = 180
 menu_button_size = 100
 restart_button_size = 100
 Points_size = 100
+
+#enter name screen
+
+enter_button_size = 100
 #coordinates of the center of buttons
 start_x_cor = X/2
 start_y_cor = Y/2
@@ -224,6 +241,16 @@ def game_over(screen, Points):
     menu_button_width, menu_button_length = button('Menu', GREEN, BLUE, X/2, menu_y_cor, menu_button_size)
     restart_button_width, restart_button_length = button('Restart', GREEN, BLUE, X/2, menu_y_cor - menu_button_length - 5, restart_button_size)
     pygame.display.update()
+
+def enter_name(screen, name):
+    """
+    draws enter your name screen with your name
+    """
+    global ok_length, ok_width
+    screen.fill(BLACK)
+    button('Enter your name', RED, WHITE, X/2, Y/5, enter_name_size)
+    ok_width, ok_length = button('OK', GREEN, BLUE, ok_x_cor, ok_y_cor, ok_size)
+    button(name, GREEN, BLUE, X/2, Y/2, 50)
     
 Game_start = True   
 finished = False
@@ -247,7 +274,7 @@ while not finished:
     #small ball list of parameters
     small_balls_pars = []
 
-    #events for smallballs
+    #timers for smallballs
     events = []
     #initial balls
     for i in range(Number_of_balls):
@@ -289,14 +316,56 @@ while not finished:
                 if button_hit(event.pos[0], event.pos[1], start_x_cor, start_y_cor, Start_button_width, Start_button_length) == True:
                     Game_start = False
                     Game_play = True
+                    Enter_name = True
                     
         
         pygame.display.update()
-        button('Start', GREEN, BLUE, X/2, Y/2, start_font_size)    
+        button('Start', GREEN, BLUE, X/2, Y/2, start_font_size)
 
+        
+    screen.fill(BLACK)
+    #entering name
+    Name = ''
+    enter_name(screen, Name)
 
+    
+    while Enter_name:
+        clock.tick(FPS)
+            
+        x_mouse, y_mouse = pygame.mouse.get_pos()
+        
+        if button_hit(x_mouse, y_mouse, ok_x_cor, ok_y_cor, ok_width, ok_length) == True:
+            button('OK', BLUE, GREEN, ok_x_cor, ok_y_cor, ok_size)
+            
+        
+        pygame.display.update()
+        enter_name(screen, Name)
+        
+        for event in pygame.event.get():
+            
+            if event.type == pygame.QUIT:
+                finished = True
+                Enter_name = False
+                Game_play = False
+                Game_over = False
+            elif event.type == pygame.KEYDOWN:
+                for i in alphabet:
+                    if eval('pygame.'+i) == event.key:
+                        Name += i[2]
+                if event.key == pygame.K_BACKSPACE:
+                    Name = Name[:len(Name)-1]
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if button_hit(event.pos[0], event.pos[1], ok_x_cor, ok_y_cor, ok_width, ok_length) == True:
+                    Enter_name = False
+                    Game_play = True
+        
+
+                    
                 
-    screen.fill(BLACK)   
+                        
+    screen.fill(BLACK)
+
+    
     #game-play
     while Game_play:
         clock.tick(FPS)
@@ -413,13 +482,16 @@ while not finished:
         pygame.display.update()
 
 
-
+    k = 0
     #displaying game_over screen
     game_over(screen, Points)
     #game-over
     while Game_over:
         clock.tick(FPS)
-
+        if k == 0:
+            with open('score_board.txt', 'a') as g:
+                g.write(Name+': '+str(Points)+'\n')
+            k = 1
         
         #changing buttons if mouse pos is located on them
         x_mouse, y_mouse = pygame.mouse.get_pos()
@@ -435,6 +507,8 @@ while not finished:
 
         
         for event in pygame.event.get():
+
+                
             if event.type == pygame.QUIT:
                 Game_over = False
                 finished = True
