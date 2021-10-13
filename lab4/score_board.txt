@@ -1,3 +1,26 @@
 kirill: 4
 kirill: 68
 fgf: 14
+kirill: 4 Points
+: 15 Points
+kiril: 8 Points
+dngeonmaster: 120 Points
+: 210 Points
+: 180 Points
+: 180 Points
+: 120 Points
+: 210 Points
+: 240 Points
+: 60 Points
+: 90 Points
+hh: 720 Points
+: 390 Points
+: 60 Points
+: 120 Points
+: 30 Points
+: 60 Points
+: 90 Points
+: 600 Points
+: 150 Points
+: 3300 Points
+gfgfg: 480 Points

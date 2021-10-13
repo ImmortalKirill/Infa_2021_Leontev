@@ -106,7 +106,7 @@ def points_counter(screen, points, x_cor, y_cor, font_size):
     :par font_size: font size
     """
     font = pygame.font.Font('freesansbold.ttf', font_size)
-    text = font.render('Points: '+str(points), True, GREEN, BLUE)
+    text = font.render('Bucks: '+str(points)+'$', True, GREEN, BLUE)
     textRect = text.get_rect()
     textRect.topleft = (x_cor, y_cor)
     screen.blit(text, textRect)
@@ -236,7 +236,7 @@ def game_over(screen, Points):
     screen.fill(BLACK)
     game_over_width, game_over_length = button('Game over', RED, WHITE, X/2, Y/5, game_over_size)
     if Points != 1:
-        button('You scored: '+str(Points)+' Points', RED, WHITE, X/2, Y*45/100, Points_size)
+        button('score: '+str(Points)+'$', RED, WHITE, X/2, Y*45/100, Points_size)
     else: button('You scored: '+str(Points)+' Point', RED, WHITE, X/2, Y*45/100, Points_size)
     menu_button_width, menu_button_length = button('Menu', GREEN, BLUE, X/2, menu_y_cor, menu_button_size)
     restart_button_width, restart_button_length = button('Restart', GREEN, BLUE, X/2, menu_y_cor - menu_button_length - 5, restart_button_size)
@@ -254,7 +254,7 @@ def enter_name(screen, name):
     
 Game_start = True   
 finished = False
-
+Enter_name = False
 
 pygame.display.update()
 while not finished:
@@ -389,8 +389,9 @@ while not finished:
                 #cheking simple balls
                 for i in range(Number_of_balls):
                     if (event.pos[0] - x[i])**2 + (event.pos[1] - y[i])**2 <= r[i]**2: #checking if we've hitted the ball
-
-                        Points += 1
+                        pygame.mixer.music.load('11817-gachi-woo.mp3')
+                        pygame.mixer.music.play()
+                        Points += 30
                         Misses -= 1
                         screen.fill(BLACK)
                         #changing the ball we've hitted
@@ -405,6 +406,9 @@ while not finished:
                 i = 0            
                 while i < len(supa_ball_pars):
                     if (event.pos[0] - supa_ball_pars[i][1])**2 + (event.pos[1] - supa_ball_pars[i][2])**2 <= supa_ball_pars[i][3]**2:      #Cheking if we've hitted supa ball number i
+                        
+                        pygame.mixer.music.load('41077-gachi-billy-spank.mp3')
+                        pygame.mixer.music.play()
                         Misses -= 1
                         #adding Number_of_small_balls in small_balls_pars
                         small_balls_pars.append([small_ball(screen, supa_ball_pars[i][1], supa_ball_pars[i][2], supa_ball_pars[i][3]) for k in range(Number_of_small_balls)] )
@@ -435,7 +439,9 @@ while not finished:
 
                     # adding points if player hitted all small balls from one supa ball
                     if len(small_balls_pars[k]) == 0:
-                        Points += 10
+                        pygame.mixer.music.load('15835-300.mp3')
+                        pygame.mixer.music.play()
+                        Points += 300
                         small_balls_pars.pop(k)
                         events.pop(k)
                         k -= 1
@@ -488,9 +494,10 @@ while not finished:
     #game-over
     while Game_over:
         clock.tick(FPS)
+        #writing score in scoreboard
         if k == 0:
             with open('score_board.txt', 'a') as g:
-                g.write(Name+': '+str(Points)+'\n')
+                g.write(Name+': '+str(Points)+' Points'+ '\n')
             k = 1
         
         #changing buttons if mouse pos is located on them
