@@ -5,15 +5,14 @@ from random import randint
 import numpy as np
 pygame.init()
 
-
 FPS = 30
 # screen size
-X = 1200
-Y = 700
+X = 1500
+Y = 850
 screen = pygame.display.set_mode((X, Y))
 
 #start button
-start_font_size = 200
+start_font_size = 150
 
 #enter name screen
 enter_name_size = 100
@@ -76,8 +75,8 @@ Vx - velocity in x direction
 Vy - velocity in y direction
 color - color of a ball
 '''
-    x = randint(340, 1100)
-    y = randint(140, 600)
+    x = randint(round(340/1200*X), round(1100/1200*X))
+    y = randint(round(140/700*Y), round(600/700*Y))
     r = randint(15, 50)
     Vx = randint(-10, 10)
     Vy = randint(-10, 10)
@@ -162,8 +161,8 @@ def supa_ball(screen):
     Vy - velocity in y direction
     color - color of a ball
     """
-    x = randint(340, 1100)
-    y = randint(140, 600)
+    x = randint(round(340/1200*X), round(1100/1200*X))
+    y = randint(round(140/700*Y), round(600/700*Y))
     r = Supa_ball_radius
     Vx = randint(-10, 10)
     Vy = randint(-10, 10)
@@ -196,9 +195,10 @@ def menu_screen(screen):
     draws menu screen
     :par screen: display
     """
-    global Start_button_width, Start_button_length    
+    global Start_button_width, Start_button_length, Score_button_width, Score_button_length  
     Start_button_width, Start_button_length = button('Start', GREEN, BLUE, start_x_cor, start_y_cor, start_font_size)
     button('Menu', RED, WHITE, X/2, Y/5, 100)
+    Score_button_width, Score_button_length = button('Score board', GREEN, BLUE, start_x_cor, start_y_cor + Start_button_length + 5, 100)
     
 
 def button(name, name_color, background_color, x, y, font_size):
@@ -251,7 +251,18 @@ def enter_name(screen, name):
     button('Enter your name', RED, WHITE, X/2, Y/5, enter_name_size)
     ok_width, ok_length = button('OK', GREEN, BLUE, ok_x_cor, ok_y_cor, ok_size)
     button(name, GREEN, BLUE, X/2, Y/2, 50)
-    
+
+def score_board(names, last, best, first_place):
+    global G1, G2
+    rect(screen, BLUE, (X/40,0, 38/40*X, Y), 0)
+    o = button('Score board', RED, WHITE, X/2, Y/5, 100)
+    G1, G2 = button('menu', GOLD, WHITE, X/40+100/1200*X, 100/700*Y, 50)
+    i = first_place - 1
+    while i < len(names) and i <= 5+first_place:
+        F = button(str(i+1)+') ' + names[i]+':Last - $'+str(last[i])+'|Best - $'+str(best[i]), RED, WHITE, X/2, Y/5+o[1]+100*(i - first_place+1), 50)
+        rect(screen, BLUE, (X/2 - F[0]/2, Y/5+o[1]+100*(i - first_place+1) - F[1]/2, F[0]+5, F[1]+5))
+        button(str(i+1)+') ' + names[i]+':Last - $'+str(last[i])+'|Best - $'+str(best[i]), RED, WHITE, X/40 + F[0]/2, Y/5+o[1]+100*(i - first_place+1), 50)    
+        i += 1
 Game_start = True   
 finished = False
 Enter_name = False
@@ -260,7 +271,37 @@ pygame.display.update()
 while not finished:
     clock = pygame.time.Clock()
 
+    names = []
+    best = []
+    last = []
+    with open('score_board.txt', 'r') as g:
+        for line in g.readlines():
+            if line != '\n':
+                a = line.split(':')
+                names.append(a[0])
+                b = a[1].split('|')
+                last.append(int(b[0][8:len(b[0])]))
+                best.append(int(b[1][8:len(b[1])]))
+                
+    with open('score_board.txt', 'w') as g:
+        u = 0
+    for j in range(len(names)-1):
+        for i in range(0, len(names)-1-j):
+            if best[i] < best[i+1]:
+                m = best[i]
+                best[i] = best[i+1]
+                best[i+1] = m
 
+            
+                m = names[i]
+                names[i] = names[i+1]
+                names[i+1] = m
+
+            
+                m = last[i]
+                last[i] = last[i+1]
+                last[i+1] = m
+            
     #lists for parameters of balls
     x = [1 for i in range(Number_of_balls)]
     y = [1 for i in range(Number_of_balls)]
@@ -304,12 +345,17 @@ while not finished:
             button('Start', BLUE, GREEN, X/2, Y/2, start_font_size)
 
             
+        if button_hit(x_mouse, y_mouse, start_x_cor, start_y_cor + Start_button_length + 5, Score_button_width, Score_button_length) == True:
+            button('Score board', BLUE, GREEN, start_x_cor, start_y_cor + Start_button_length + 5, 100)
+
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
                 Game_start = False
                 Game_play = False
                 Game_over = False
+                Score_board = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #checking if player tapped on start button
                 
@@ -317,12 +363,56 @@ while not finished:
                     Game_start = False
                     Game_play = True
                     Enter_name = True
+                    Score_board = False
+                #checking if player tapped on score board button
+                    
+                if button_hit(event.pos[0], event.pos[1],start_x_cor, start_y_cor + Start_button_length + 5, Score_button_width, Score_button_length) == True:
+                    Game_start = False
+                    Game_play = False
+                    Enter_name = False
+                    Score_board = True
                     
         
         pygame.display.update()
         button('Start', GREEN, BLUE, X/2, Y/2, start_font_size)
+        button('Score board', GREEN, BLUE, start_x_cor, start_y_cor + Start_button_length + 5, 100)
+    screen.fill(BLACK)
+    first_place = 1
 
+    score_board(names, last, best, first_place)
+    while Score_board == True:
+        score_board(names, last, best, first_place)
         
+        x_mouse, y_mouse = pygame.mouse.get_pos()
+        if button_hit(x_mouse, y_mouse, X/40+100/1200*X, 100/700*Y, G1, G2) == True:
+            button('menu', WHITE, GOLD, X/40+100/1200*X, 100/700*Y, 50)
+
+            
+        
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                finished = True
+                Game_start = False
+                Game_play = False
+                Game_over = False
+                Score_board = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if first_place != 1:
+                        first_place -= 1
+                if event.key == pygame.K_DOWN:
+                    if first_place < len(names):
+                        first_place += 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if button_hit(event.pos[0], event.pos[1], X/40+100/1200*X, 100/700*Y, G1, G2) == True:
+                    Game_start = True
+                    Game_play = False
+                    Game_over = False
+                    Score_board = False
+        button('menu', GOLD, WHITE, X/40+100/1200*X, 100/700*Y, 50)
+        screen.fill(BLACK)
+                
     screen.fill(BLACK)
     #entering name
     Name = ''
@@ -354,6 +444,8 @@ while not finished:
                         Name += i[2]
                 if event.key == pygame.K_BACKSPACE:
                     Name = Name[:len(Name)-1]
+                if event.key == pygame.K_SPACE:
+                    Name += ' '
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if button_hit(event.pos[0], event.pos[1], ok_x_cor, ok_y_cor, ok_width, ok_length) == True:
                     Enter_name = False
@@ -496,8 +588,19 @@ while not finished:
         clock.tick(FPS)
         #writing score in scoreboard
         if k == 0:
-            with open('score_board.txt', 'a') as g:
-                g.write(Name+': '+str(Points)+' Points'+ '\n')
+            l = 1
+            for i in range(len(names)):
+                if Name == names[i]:
+                    l = 0
+                    last[i] = Points
+                    if Points > best[i]:
+                        best[i] = Points
+
+            if l == 1:
+                names.append(Name)
+                best.append(Points)
+                last.append(Points)
+
             k = 1
         
         #changing buttons if mouse pos is located on them
@@ -530,6 +633,9 @@ while not finished:
                     Game_over = False
                     Game_play = True
                     Game_start = False
+    with open('score_board.txt', 'a') as g:
+        for i in range(len(names)):
+            g.write(names[i]+':Last - $'+str(last[i])+'|Best - $'+str(best[i])+ '\n')    
                 
                
 pygame.quit()
