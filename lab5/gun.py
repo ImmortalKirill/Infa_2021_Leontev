@@ -309,6 +309,18 @@ class Target:
         if self.x + self.r > WIDTH or self.x - self.r < 0:
             self.vx = -self.vx
 
+    def hittest(self, obj):
+        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
+
+        Args:
+            obj: Обьект, с которым проверяется столкновение.
+        Returns:
+            Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
+        """
+        if math.sqrt((self.x - obj.x) ** 2 + (self.y - obj.y) ** 2) <= self.r + obj.r:
+            return True
+        else:
+            return False
 
 class Boss:
     def __init__(self, screen):
@@ -428,6 +440,9 @@ def game_move(screen, balls, gun, target_set, boss):
             i -= 1
         i += 1
 
+    for target in target_set:
+        if target.hittest(gun):
+            game_live = 0
 
 def button_hit(x_tap, y_tap, x_button, y_button, button_width, button_length):
     """
